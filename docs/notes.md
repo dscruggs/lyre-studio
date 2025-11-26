@@ -1,0 +1,2 @@
+- need to preprocess wav files to be 16k sampling if from youtube. Need to do more testing here
+- need to upgrade

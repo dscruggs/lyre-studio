@@ -1,0 +1,31 @@
+[project]
+name = "voice-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "chatterbox-tts>=0.1.4",
+    "gradio>=6.0.1",
+    "jupyterlab>=4.5.0",
+    "pedalboard>=0.9.19",
+    "sentencepiece>=0.2.1",
+    "tiktoken>=0.12.0",
+    "torch>=2.9.1",
+    "torchaudio>=2.9.1",
+    "torchcodec>=0.8.1",
+    "torchvision>=0.24.1",
+    "transformers>=4.57.3",
+]
+
+[tool.uv]
+override-dependencies = [
+    "transformers>=4.40.0",
+    "gradio>=4.0.0",
+    "numpy>=1.20.0",
+    "torch>=2.0.0",
+    "torchaudio>=2.0.0",
+]
+
+[tool.uv.extra-build-dependencies]
+pkuseg = ["numpy"]
