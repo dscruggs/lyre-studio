@@ -2,11 +2,11 @@
 
 <img src="branding/lyre_studio_banner.png" alt="Lyre Studio UI Screenshot" height=200px>
 
-A fully local voice cloning and translation tool. Record or upload a voice sample, then generate new speech in that voice - in any supported language, with optional audio effects. All processing happens locally - no audio is sent to external servers. Works much better with GPU (translation and voice style transfer runs in 10-20 seconds vs minutes w/ CPU)
+A voice cloning and translation tool using fully local compute. Record or upload a voice sample, then generate new speech in that voice - in any supported language, with optional audio effects. All processing happens locally - no audio is sent to external servers. Works much better with GPU (translation and voice style transfer runs in 10-20 seconds vs minutes w/ CPU)
 
 ## What It Does
 
-1. **Voice Upload** - Capture your own or someone else's voice from a ~5-10+ second audio clip
+1. **Voice Upload** - Capture your own or someone else's voice from a ~5-10+ second audio clip (in English)
 2. **Content Selection** - Choose what the cloned voice should say:
    - Use the original clip's speech
    - Record or upload different audio
@@ -101,6 +101,12 @@ Lyre Studio uses two open-source models from Hugging Face:
 | [Chatterbox TTS](https://huggingface.co/ResembleAI/chatterbox) | Zero-shot voice cloning and multilingual text-to-speech | ~1GB |
 
 Audio effects (reverb, distortion, pitch shift, etc.) are powered by [Pedalboard](https://github.com/spotify/pedalboard), Spotify's open-source audio processing library.
+
+## Supported Languages for Translation
+
+The following languages are supported. The source language must be in English.
+
+`Arabic` `Chinese` `Danish` `Dutch` `English` `Finnish` `French` `German` `Greek` `Hebrew` `Hindi` `Italian` `Japanese` `Korean` `Malay` `Norwegian` `Polish` `Portuguese` `Russian` `Spanish` `Swahili` `Swedish` `Turkish`
 
 ## Troubleshooting
 
