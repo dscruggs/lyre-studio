@@ -90,6 +90,17 @@ Dockerfile.frontend       # Bun dev server image
 docker-compose.yml        # Full stack orchestration
 ```
 
+## Models Used
+
+Lyre Studio uses two open-source models from Hugging Face:
+
+| Model | Purpose | Size |
+|-------|---------|------|
+| [SeamlessM4T v2 Large](https://huggingface.co/facebook/seamless-m4t-v2-large) | Speech-to-text translation across 100+ languages | ~9GB |
+| [Chatterbox TTS](https://huggingface.co/ResembleAI/chatterbox) | Zero-shot voice cloning and multilingual text-to-speech | ~1GB |
+
+Audio effects (reverb, distortion, pitch shift, etc.) are powered by [Pedalboard](https://github.com/spotify/pedalboard), Spotify's open-source audio processing library.
+
 ## Troubleshooting
 
 Tested on up to 30s audio clips. Longer clips may run into memory issues and will take longer to run but otherwise should be ok.

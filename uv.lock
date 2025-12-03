@@ -1214,6 +1214,41 @@ wheels = [
 ]
 
 [[package]]
+name = "lyre-studio"
+version = "0.5.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "chatterbox-tts" },
+    { name = "gradio" },
+    { name = "jupyterlab" },
+    { name = "pedalboard" },
+    { name = "pyyaml" },
+    { name = "sentencepiece" },
+    { name = "tiktoken" },
+    { name = "torch" },
+    { name = "torchaudio" },
+    { name = "torchcodec" },
+    { name = "transformers" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "chatterbox-tts", specifier = ">=0.1.4" },
+    { name = "gradio", specifier = ">=6.0.1" },
+    { name = "jupyterlab", specifier = ">=4.5.0" },
+    { name = "pedalboard", specifier = ">=0.9.19" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "sentencepiece", specifier = ">=0.2.1" },
+    { name = "tiktoken", specifier = ">=0.12.0" },
+    { name = "torch", specifier = ">=2.9.1" },
+    { name = "torchaudio", specifier = ">=2.9.1" },
+    { name = "torchcodec", specifier = ">=0.8.1" },
+    { name = "transformers", specifier = ">=4.57.3" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.38.0" },
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3226,41 +3261,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/20/28/e6f1a6f655d620846bd9df527390ecc26b3805a0c5989048c210e22c5ca9/virtualenv-20.35.4.tar.gz", hash = "sha256:643d3914d73d3eeb0c552cbb12d7e82adf0e504dbf86a3182f8771a153a1971c", size = 6028799, upload-time = "2025-10-29T06:57:40.511Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/79/0c/c05523fa3181fdf0c9c52a6ba91a23fbf3246cc095f26f6516f9c60e6771/virtualenv-20.35.4-py3-none-any.whl", hash = "sha256:c21c9cede36c9753eeade68ba7d523529f228a403463376cf821eaae2b650f1b", size = 6005095, upload-time = "2025-10-29T06:57:37.598Z" },
-]
-
-[[package]]
-name = "voice-project"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "chatterbox-tts" },
-    { name = "gradio" },
-    { name = "jupyterlab" },
-    { name = "pedalboard" },
-    { name = "pyyaml" },
-    { name = "sentencepiece" },
-    { name = "tiktoken" },
-    { name = "torch" },
-    { name = "torchaudio" },
-    { name = "torchcodec" },
-    { name = "transformers" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "chatterbox-tts", specifier = ">=0.1.4" },
-    { name = "gradio", specifier = ">=6.0.1" },
-    { name = "jupyterlab", specifier = ">=4.5.0" },
-    { name = "pedalboard", specifier = ">=0.9.19" },
-    { name = "pyyaml", specifier = ">=6.0.2" },
-    { name = "sentencepiece", specifier = ">=0.2.1" },
-    { name = "tiktoken", specifier = ">=0.12.0" },
-    { name = "torch", specifier = ">=2.9.1" },
-    { name = "torchaudio", specifier = ">=2.9.1" },
-    { name = "torchcodec", specifier = ">=0.8.1" },
-    { name = "transformers", specifier = ">=4.57.3" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.38.0" },
 ]
 
 [[package]]
