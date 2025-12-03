@@ -1,0 +1,85 @@
+effects:
+  noise_gate:
+    class: NoiseGate
+    params:
+      threshold_db: {min: -100, max: 0, default: -40}
+  compressor:
+    class: Compressor
+    params:
+      threshold_db: {min: -60, max: 0, default: -20}
+  highpass:
+    class: HighpassFilter
+    params:
+      cutoff_frequency_hz: {min: 20, max: 1000, default: 80}
+  lowpass:
+    class: LowpassFilter
+    params:
+      cutoff_frequency_hz: {min: 100, max: 15000, default: 5000}
+  high_shelf:
+    class: HighShelfFilter
+    params:
+      gain_db: {min: -20, max: 20, default: 0}
+  low_shelf:
+    class: LowShelfFilter
+    params:
+      gain_db: {min: -20, max: 20, default: 0}
+  peak:
+    class: PeakFilter
+    params:
+      gain_db: {min: -20, max: 20, default: 0}
+  ladder:
+    class: LadderFilter
+    params:
+      cutoff_hz: {min: 100, max: 10000, default: 2000}
+  phaser:
+    class: Phaser
+    params:
+      rate_hz: {min: 0.1, max: 10.0, default: 1.0}
+  chorus:
+    class: Chorus
+    params:
+      depth: {min: 0.0, max: 1.0, default: 0.5}
+  delay:
+    class: Delay
+    params:
+      delay_seconds: {min: 0.0, max: 1.0, default: 0.4}
+  reverb:
+    class: Reverb
+    params:
+      room_size: {min: 0.0, max: 1.0, default: 0.5}
+  distortion:
+    class: Distortion
+    params:
+      drive_db: {min: 0, max: 60, default: 25}
+  clipping:
+    class: Clipping
+    params:
+      threshold_db: {min: -40, max: 0, default: -6}
+  bitcrush:
+    class: Bitcrush
+    params:
+      bit_depth: {min: 2, max: 16, default: 8}
+  gsm:
+    class: GSMFullRateCompressor
+    params: {}
+  mp3:
+    class: MP3Compressor
+    params:
+      vbr_quality: {min: 0.0, max: 9.0, default: 0.0}
+  resample:
+    class: Resample
+    params:
+      target_sample_rate: {min: 1000, max: 16000, default: 8000}
+  pitch_shift:
+    class: PitchShift
+    params:
+      semitones: {min: -12, max: 12, default: 0}
+  gain:
+    class: Gain
+    params:
+      gain_db: {min: -20, max: 20, default: 0}
+  limiter:
+    class: Limiter
+    params:
+      threshold_db: {min: -20, max: 0, default: -1}
+

@@ -1,0 +1,13 @@
+.git
+.gitignore
+.venv
+outputs
+node_modules
+src/frontend/node_modules
+src/frontend/dist
+test_sound_files
+experiments
+docs
+*.pyc
+__pycache__
+

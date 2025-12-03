@@ -1,43 +1,73 @@
 import gradio as gr
 import torch
+
+_original_torch_load = torch.load
+def _patched_torch_load(*args, **kwargs):
+    if 'map_location' not in kwargs:
+        device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+        kwargs['map_location'] = device
+    return _original_torch_load(*args, **kwargs)
+torch.load = _patched_torch_load
+
 import torchaudio
 from pathlib import Path
 from transformers import AutoProcessor, SeamlessM4Tv2ForSpeechToText
 from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
 # --- CONFIGURATION ---
-# SeamlessM4T language codes
+# SeamlessM4T language codes (only languages Chatterbox supports)
 LANG_MAP = {
-    "Spanish": "spa",
+    "Arabic": "arb",
+    "Chinese": "cmn",
+    "Danish": "dan",
+    "Dutch": "nld",
+    "Finnish": "fin",
     "French": "fra",
     "German": "deu",
+    "Greek": "ell",
+    "Hebrew": "heb",
+    "Hindi": "hin",
     "Italian": "ita",
+    "Japanese": "jpn",
+    "Korean": "kor",
+    "Malay": "zlm",
+    "Norwegian": "nob",
+    "Polish": "pol",
     "Portuguese": "por",
     "Russian": "rus",
-    "Dutch": "nld",
-    "Polish": "pol",
-    "Japanese": "jpn",
-    "Chinese": "cmn",
-    "Korean": "kor",
-    "Arabic": "arb",
-    "Hindi": "hin",
-    "Turkish": "tur",
-    "Vietnamese": "vie",
-    "Thai": "tha",
-    "Indonesian": "ind",
+    "Spanish": "spa",
+    "Swahili": "swh",
     "Swedish": "swe",
+    "Turkish": "tur",
 }
 
 # Chatterbox uses ISO 639-1 codes
 CHATTERBOX_LANG_MAP = {
-    "Spanish": "es", "French": "fr", "German": "de", "Italian": "it",
-    "Portuguese": "pt", "Russian": "ru", "Dutch": "nl", "Polish": "pl",
-    "Japanese": "ja", "Chinese": "zh", "Korean": "ko", "Arabic": "ar",
-    "Hindi": "hi", "Turkish": "tr", "Vietnamese": "vi", "Thai": "th",
-    "Indonesian": "id", "Swedish": "sv",
+    "Arabic": "ar",
+    "Chinese": "zh",
+    "Danish": "da",
+    "Dutch": "nl",
+    "Finnish": "fi",
+    "French": "fr",
+    "German": "de",
+    "Greek": "el",
+    "Hebrew": "he",
+    "Hindi": "hi",
+    "Italian": "it",
+    "Japanese": "ja",
+    "Korean": "ko",
+    "Malay": "ms",
+    "Norwegian": "no",
+    "Polish": "pl",
+    "Portuguese": "pt",
+    "Russian": "ru",
+    "Spanish": "es",
+    "Swahili": "sw",
+    "Swedish": "sv",
+    "Turkish": "tr",
 }
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 OUTPUT_DIR = Path("outputs")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -63,12 +93,14 @@ chatterbox.t3.tfmr.config._attn_implementation = "eager"
 print("✅ All models loaded!")
 print("   - SeamlessM4Tv2-Large (S2T only, fp16): ~3-4GB")
 print("   - Chatterbox Multilingual: ~2-3GB")
+print(f"SeamlessM4T device: {next(seamless_model.parameters()).device}")
+print(f"Chatterbox device: {next(chatterbox.t3.parameters()).device}")
 print("   - Total: ~5-7GB")
 
 
 def load_audio_for_seamless(audio_path: str, target_sr: int = 16000):
     """Load and resample audio for SeamlessM4T (requires 16kHz)."""
-    waveform, sr = torchaudio.load(audio_path, backend="soundfile")
+    waveform, sr = torchaudio.load(audio_path)
     
     # Convert to mono if stereo
     if waveform.shape[0] > 1:

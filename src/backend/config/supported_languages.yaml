@@ -1,0 +1,71 @@
+languages:
+  English:
+    seamless: eng
+    chatterbox: en
+  Arabic:
+    seamless: arb
+    chatterbox: ar
+  Chinese:
+    seamless: cmn
+    chatterbox: zh
+  Danish:
+    seamless: dan
+    chatterbox: da
+  Dutch:
+    seamless: nld
+    chatterbox: nl
+  Finnish:
+    seamless: fin
+    chatterbox: fi
+  French:
+    seamless: fra
+    chatterbox: fr
+  German:
+    seamless: deu
+    chatterbox: de
+  Greek:
+    seamless: ell
+    chatterbox: el
+  Hebrew:
+    seamless: heb
+    chatterbox: he
+  Hindi:
+    seamless: hin
+    chatterbox: hi
+  Italian:
+    seamless: ita
+    chatterbox: it
+  Japanese:
+    seamless: jpn
+    chatterbox: ja
+  Korean:
+    seamless: kor
+    chatterbox: ko
+  Malay:
+    seamless: zlm
+    chatterbox: ms
+  Norwegian:
+    seamless: nob
+    chatterbox: no
+  Polish:
+    seamless: pol
+    chatterbox: pl
+  Portuguese:
+    seamless: por
+    chatterbox: pt
+  Russian:
+    seamless: rus
+    chatterbox: ru
+  Spanish:
+    seamless: spa
+    chatterbox: es
+  Swahili:
+    seamless: swh
+    chatterbox: sw
+  Swedish:
+    seamless: swe
+    chatterbox: sv
+  Turkish:
+    seamless: tur
+    chatterbox: tr
+

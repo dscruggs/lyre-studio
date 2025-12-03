@@ -1,0 +1,22 @@
+FROM python:3.13-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PATH="/root/.local/bin:$PATH"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    ffmpeg \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
+
+COPY src/backend ./src/backend
+
+WORKDIR /app/src/backend
+EXPOSE 8000
+CMD ["uv", "run", "python", "main.py"]
