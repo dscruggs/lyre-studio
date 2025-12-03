@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Any
 
 import numpy as np
@@ -27,6 +28,8 @@ from pedalboard import (
 )
 
 from api.config import get_effect_configs
+
+logger = logging.getLogger(__name__)
 
 
 EFFECT_CLASS_MAP = {
@@ -77,7 +80,7 @@ def build_pedalboard(config: Dict[str, Dict[str, float]]) -> Pedalboard:
         try:
             chain.append(cls(**kwargs))
         except Exception as exc:
-            print(f"[FX] Unable to add {fx_name}: {exc}")
+            logger.warning(f"Unable to add effect {fx_name}: {exc}")
     return Pedalboard(chain)
 
 

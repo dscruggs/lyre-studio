@@ -29,17 +29,26 @@ const EFFECTS = {
 
 const PRESETS = {
   broadcast: { label: 'Broadcast', effects: { noise_gate: {}, highpass: {}, compressor: {}, limiter: {} } },
-  walkie: { label: 'Walkie Talkie', effects: { highpass: { cutoff_frequency_hz: 400 }, lowpass: { cutoff_frequency_hz: 3000 }, gsm: {} } },
+  walkie: { label: 'Walkie Talkie', effects: { highpass: { cutoff_frequency_hz: 400 }, lowpass: { cutoff_frequency_hz: 3000 }, gsm: {}, distortion: { drive_db: 10 } } },
   helium: { label: 'Helium', effects: { pitch_shift: { semitones: 6 } } },
   underworld: { label: 'Underworld', effects: { pitch_shift: { semitones: -6 }, reverb: { room_size: 0.3 }, distortion: { drive_db: 15 } } },
-  ethereal: { label: 'Ethereal', effects: { chorus: {}, delay: { delay_seconds: 0.3 }, reverb: { room_size: 0.8 } } },
-  arcade: { label: 'Arcade', effects: { bitcrush: { bit_depth: 4 }, resample: { target_sample_rate: 8000 } } },
+  ethereal: { label: 'Ethereal', effects: { chorus: {}, delay: { delay_seconds: 0.05 }, reverb: { room_size: 0.8 } } },
+  eightbit: { label: '8-bit', effects: { bitcrush: { bit_depth: 4 }, resample: { target_sample_rate: 8000 } } },
   robot: { label: 'Robot', effects: { bitcrush: { bit_depth: 6 }, resample: { target_sample_rate: 12000 }, chorus: { depth: 0.3 } } },
   underwater: { label: 'Underwater', effects: { lowpass: { cutoff_frequency_hz: 800 }, reverb: { room_size: 0.7 }, chorus: { depth: 0.4 } } },
-  stadium: { label: 'Stadium', effects: { compressor: {}, delay: { delay_seconds: 0.25 }, reverb: { room_size: 0.9 } } },
+  echo: { label: 'Echo', effects: { compressor: {}, delay: { delay_seconds: 0.25 }, reverb: { room_size: 0.9 } } },
   megaphone: { label: 'Megaphone', effects: { highpass: { cutoff_frequency_hz: 300 }, distortion: { drive_db: 20 }, compressor: {} } },
   alien: { label: 'Alien', effects: { pitch_shift: { semitones: 3 }, phaser: { rate_hz: 2 }, reverb: { room_size: 0.5 } } },
-  vintage: { label: 'Vintage', effects: { lowpass: { cutoff_frequency_hz: 4000 }, mp3: { vbr_quality: 6 }, noise_gate: {} } },
+  vintage: {
+    label: 'Vintage',
+    effects: {
+      highpass: { cutoff_frequency_hz: 500 },
+      lowpass: { cutoff_frequency_hz: 2500 },
+      gsm: {},                                     // GSM codec gives that telephonic quality
+      distortion: { drive_db: 12 },
+      bitcrush: { bit_depth: 12 },                 // Slight lo-fi crunch
+    }
+  },
   deep_fried: {
     label: 'Deep Fried',
     effects: {
@@ -502,7 +511,7 @@ export default function VoiceStudio() {
     try {
       const voiceForm = new FormData();
       voiceForm.append('file', voiceBlob);
-      await fetch(`${API_URL}/api/celebrity-voice`, { method: 'POST', body: voiceForm });
+      await fetch(`${API_URL}/api/voice-reference`, { method: 'POST', body: voiceForm });
 
       const audio = contentMode === 'voice' ? voiceBlob : contentBlob;
       let text = textInput;

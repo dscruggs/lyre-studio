@@ -6,7 +6,6 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./outputs:/app/outputs
       - hf-cache:/root/.cache/huggingface
     environment:
       - PYTHONUNBUFFERED=1

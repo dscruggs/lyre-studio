@@ -6,7 +6,6 @@ import yaml
 
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
-PROJECT_ROOT = BACKEND_DIR.parents[1]
 CONFIG_DIR = BACKEND_DIR / "config"
 
 
@@ -43,10 +42,3 @@ def get_seamless_code(language: str) -> str:
 
 def get_chatterbox_code(language: str) -> str:
     return get_language_map().get(language, {}).get("chatterbox", "en")
-
-
-def get_outputs_dir() -> Path:
-    output_dir = PROJECT_ROOT / "outputs"
-    output_dir.mkdir(exist_ok=True)
-    return output_dir
-

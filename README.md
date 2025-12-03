@@ -1,6 +1,6 @@
 # Lyre Studio
 
-<img src="src/frontend/public/lyre_logo.png" alt="Lyre Studio UI Screenshot" width="100"/>
+<img src="src/frontend/public/lyre_studio.png" alt="Lyre Studio UI Screenshot" height=200px>
 
 
 A fully local voice cloning and translation tool. Record or upload a voice sample, then generate new speech in that voice - in any supported language, with optional audio effects. All processing happens locally - no audio is sent to external servers. Works much better with GPU (translation and voice style transfer runs in 10-20 seconds vs minutes w/ CPU)
@@ -91,6 +91,8 @@ docker-compose.yml        # Full stack orchestration
 ```
 
 ## Troubleshooting
+
+Tested on up to 30s audio clips. Longer clips may run into memory issues and will take longer to run but otherwise should be ok.
 
 | Issue | Fix |
 |-------|-----|
