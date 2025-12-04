@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Mic, Upload, Type, Play, Square, Download, Trash2, Volume2, Activity, Sparkles, Globe, User, Loader2, X, Pause, Check, Sliders, RotateCcw } from 'lucide-react';
+import { Mic, Upload, Type, Play, Square, Download, Trash2, Volume2, Activity, Sparkles, Globe, User, Loader2, X, Pause, Check, Sliders, RotateCcw, LogOut, HelpCircle } from 'lucide-react';
+import { AuthProvider, useAuth } from './auth/AuthContext';
+import Login from './auth/Login';
 
-const API_URL = 'http://localhost:8000';
+// Use backend directly for local dev, relative URL for cloud (proxied)
+const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_URL = isLocalDev ? 'http://localhost:8000' : '';
 
 const EFFECTS = {
   noise_gate: { label: 'Noise Gate', desc: 'Silences audio below threshold', params: { threshold_db: { min: -100, max: 0, default: -40, unit: 'dB' } } },
@@ -44,9 +48,9 @@ const PRESETS = {
     effects: {
       highpass: { cutoff_frequency_hz: 500 },
       lowpass: { cutoff_frequency_hz: 2500 },
-      gsm: {},                                     // GSM codec gives that telephonic quality
+      gsm: {},
       distortion: { drive_db: 12 },
-      bitcrush: { bit_depth: 12 },                 // Slight lo-fi crunch
+      bitcrush: { bit_depth: 12 },
     }
   },
   deep_fried: {
@@ -103,6 +107,29 @@ const LOADING_PHRASES = [
   "Harmonizing frequencies...",
   "Weaving audio magic...",
 ];
+
+const GRANDIOSE_TERMS = [
+  'fortissimo', 'crescendo', 'cadenza', 'arpeggio', 'virtuoso',
+  'maestoso', 'grandioso', 'rhapsody', 'fantasia', 'intermezzo',
+  'sinfonia', 'concerto', 'requiem', 'nocturne', 'scherzo',
+  'fugue', 'overture', 'sonata', 'etude', 'ballade',
+  'impromptu', 'polonaise', 'bolero', 'serenata', 'rondo',
+  'toccata', 'prelude', 'cantata', 'oratorio', 'madrigal',
+  'vivace', 'allegro', 'andante', 'adagio', 'presto',
+  'legato', 'staccato', 'tremolo', 'vibrato', 'dolce',
+  'chanson', 'berceuse', 'pavane', 'aubade', 'reverie',
+  'lied', 'walzer', 'klang', 'fandango', 'habanera',
+  'fado', 'serenade', 'minuet', 'gavotte', 'mazurka',
+  'tarantella', 'aria', 'duet', 'opus', 'finale',
+  'ensemble', 'symphony', 'harmony', 'melody', 'tempo',
+  'diminuendo', 'fermata', 'cantabile', 'bravura'
+];
+
+const generateFilename = () => {
+  const term = GRANDIOSE_TERMS[Math.floor(Math.random() * GRANDIOSE_TERMS.length)];
+  const timestamp = Date.now().toString(36);
+  return `lyre_${term}_${timestamp}.wav`;
+};
 
 // Compact waveform for recording
 const LiveWaveform = ({ analyser, isActive }) => {
@@ -390,9 +417,10 @@ const EffectCard = ({ id, effect, isActive, params, onToggle, onParamChange }) =
   );
 };
 
-export default function VoiceStudio() {
+function VoiceStudioContent() {
   const [audioDevices, setAudioDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState('');
+  const { user, token, logout, isLocal } = useAuth();
 
   const [voiceBlob, setVoiceBlob] = useState(null);
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
@@ -415,11 +443,21 @@ export default function VoiceStudio() {
   const [isApplyingEffects, setIsApplyingEffects] = useState(false);
   const [error, setError] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const streamRef = useRef(null);
   const effectsDebounceRef = useRef(null);
+
+  // Helper to fetch with auth token
+  const authenticatedFetch = async (url, options = {}) => {
+    const headers = { ...options.headers };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return fetch(url, { ...options, headers });
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -491,12 +529,12 @@ export default function VoiceStudio() {
       const form = new FormData();
       form.append('audio', blob, 'audio.wav');
       form.append('effects', JSON.stringify(activeEffects));
-      const res = await fetch(`${API_URL}/api/apply-effects`, { method: 'POST', body: form });
+      const res = await authenticatedFetch(`${API_URL}/api/apply-effects`, { method: 'POST', body: form });
       if (!res.ok) throw new Error('Effects failed');
       setOutputAudioUrl(URL.createObjectURL(await res.blob()));
     } catch (e) { console.error(e); }
     finally { setIsApplyingEffects(false); }
-  }, [activeEffects]);
+  }, [activeEffects, token]);
 
   useEffect(() => {
     if (!rawAudioBlob || isProcessing) return;
@@ -511,7 +549,7 @@ export default function VoiceStudio() {
     try {
       const voiceForm = new FormData();
       voiceForm.append('file', voiceBlob);
-      await fetch(`${API_URL}/api/voice-reference`, { method: 'POST', body: voiceForm });
+      await authenticatedFetch(`${API_URL}/api/voice-reference`, { method: 'POST', body: voiceForm });
 
       const audio = contentMode === 'voice' ? voiceBlob : contentBlob;
       let text = textInput;
@@ -521,7 +559,8 @@ export default function VoiceStudio() {
         const form = new FormData();
         form.append('audio', audio, 'audio.wav');
         form.append('translate_to', translateTo || 'English');
-        const res = await fetch(`${API_URL}/api/translate`, { method: 'POST', body: form });
+        const res = await authenticatedFetch(`${API_URL}/api/translate`, { method: 'POST', body: form });
+        if (res.status === 403) throw new Error('Access denied: User not in whitelist');
         if (!res.ok) throw new Error('Translation failed');
         text = (await res.json()).translated_text;
         setTranslatedText(text); // Show immediately!
@@ -533,7 +572,8 @@ export default function VoiceStudio() {
       form.append('language', translateTo || 'English');
       form.append('expressiveness', expressiveness.toString());
       form.append('similarity', similarity.toString());
-      const res = await fetch(`${API_URL}/api/synthesize`, { method: 'POST', body: form });
+      const res = await authenticatedFetch(`${API_URL}/api/synthesize`, { method: 'POST', body: form });
+      if (res.status === 403) throw new Error('Access denied: User not in whitelist');
       if (!res.ok) throw new Error('Synthesis failed');
 
       const blob = await res.blob();
@@ -551,30 +591,60 @@ export default function VoiceStudio() {
   const effectCount = Object.keys(activeEffects).length;
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 flex flex-col overflow-hidden">
+    <div className="min-h-screen lg:h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-3 lg:p-4 flex flex-col lg:overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 shrink-0">
         <div className="flex items-center gap-1">
-          <img src="./lyre_logo.png" alt="Lyre" className="w-10 h-10" />
+          <img src="./lyre_logo.png" alt="Lyre" className="w-8 h-8 lg:w-10 lg:h-10" />
           <div className="flex flex-col">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent leading-tight">Lyre Studio</h1>
-            <span className="text-xs text-slate-500">Clone any voice. Speak any language. Have fun with effects!</span>
+            <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent leading-tight">Lyre Studio</h1>
+            <span className="text-xs text-slate-500 hidden sm:block">Clone any voice. Speak any language. Have fun with effects!</span>
           </div>
         </div>
-        {audioDevices.length > 0 && (
-          <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg px-3 py-1.5">
-            <Mic size={14} className="text-emerald-400" />
-            <select value={selectedDevice} onChange={(e) => setSelectedDevice(e.target.value)} className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer">
-              {audioDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label || 'Default Microphone'}</option>)}
-            </select>
-          </div>
-        )}
+
+        <div className="flex items-center gap-2 lg:gap-3">
+          {audioDevices.length > 0 && (
+            <div className="hidden sm:flex items-center gap-2 bg-slate-800/50 rounded-lg px-3 py-1.5">
+              <Mic size={14} className="text-emerald-400" />
+              <select value={selectedDevice} onChange={(e) => setSelectedDevice(e.target.value)} className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-32">
+                {audioDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label || 'Default Microphone'}</option>)}
+              </select>
+            </div>
+          )}
+
+          {/* Logout button (only if not local) */}
+          {!isLocal && (
+            <button onClick={logout} className="flex items-center gap-2 px-2 lg:px-3 py-1.5 bg-slate-800/50 hover:bg-slate-700 rounded-lg text-xs text-slate-300 transition">
+              <LogOut size={14} />
+              <span className="hidden sm:inline">Sign Out</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex gap-4 min-h-0">
+      <div className="flex-1 flex flex-col lg:flex-row gap-3 lg:gap-4 lg:min-h-0">
         {/* Left: Inputs */}
-        <div className="w-72 shrink-0 flex flex-col gap-2 overflow-y-auto">
+        <div className="w-full lg:w-72 shrink-0 flex flex-col gap-2 lg:overflow-y-auto">
+          {/* How to Use Button */}
+          <button
+            onClick={() => setShowHelp(true)}
+            className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700 rounded-xl text-sm text-slate-400 hover:text-slate-200 transition"
+          >
+            <HelpCircle size={16} />
+            <span>How to Use</span>
+          </button>
+
+          {/* Mobile mic selector */}
+          {audioDevices.length > 0 && (
+            <div className="sm:hidden flex items-center gap-2 bg-slate-800/50 rounded-xl px-3 py-2">
+              <Mic size={14} className="text-emerald-400 shrink-0" />
+              <select value={selectedDevice} onChange={(e) => setSelectedDevice(e.target.value)} className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer flex-1 min-w-0">
+                {audioDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label || 'Default Microphone'}</option>)}
+              </select>
+            </div>
+          )}
+
           {/* Voice Sample */}
           <div className="bg-slate-800/50 rounded-xl p-3">
             <div className="flex items-center gap-2 mb-2">
@@ -667,10 +737,10 @@ export default function VoiceStudio() {
         </div>
 
         {/* Right: Output & Effects */}
-        <div className="flex-1 flex flex-col bg-slate-800/30 rounded-xl p-4 min-w-0">
+        <div className="flex-1 flex flex-col bg-slate-800/30 rounded-xl p-3 lg:p-4 min-w-0">
           {/* Effects section - always visible */}
           <div className="shrink-0 mb-3">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <Sparkles size={14} className="text-purple-400" />
               <span className="text-sm font-medium">Effects</span>
               {effectCount > 0 && <span className="text-xs text-purple-400 bg-purple-500/20 px-1.5 rounded">{effectCount}</span>}
@@ -684,19 +754,19 @@ export default function VoiceStudio() {
               <div className="flex-1" />
               {effectCount > 0 && (
                 <button onClick={clearEffects} className="px-2 py-1 text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-md flex items-center gap-1 transition">
-                  <RotateCcw size={12} /> Clear All
+                  <RotateCcw size={12} /> Clear
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm text-slate-500">Presets:</span>
-              <div className="flex gap-1 flex-wrap">
+            <div className="flex items-center gap-2 mb-2 overflow-x-auto pb-1">
+              <span className="text-sm text-slate-500 shrink-0">Presets:</span>
+              <div className="flex gap-1">
                 {Object.entries(PRESETS).map(([id, p]) => (
-                  <button key={id} onClick={() => loadPreset(id)} className="px-2 py-0.5 rounded text-sm bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-slate-300 transition">{p.label}</button>
+                  <button key={id} onClick={() => loadPreset(id)} className="px-2 py-0.5 rounded text-xs lg:text-sm bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-slate-300 transition whitespace-nowrap">{p.label}</button>
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
               {Object.entries(EFFECTS).map(([id, fx]) => (
                 <EffectCard key={id} id={id} effect={fx} isActive={!!activeEffects[id]} params={activeEffects[id] || {}} onToggle={() => toggleEffect(id)} onParamChange={(p, v) => updateParam(id, p, v)} />
               ))}
@@ -727,7 +797,7 @@ export default function VoiceStudio() {
                   </div>
                 )}
                 <AudioPlayer url={outputAudioUrl} label="Output" />
-                <a href={outputAudioUrl} download="voice_studio.wav" className="flex items-center justify-center gap-2 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition text-sm">
+                <a href={outputAudioUrl} download={generateFilename()} className="flex items-center justify-center gap-2 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition text-sm">
                   <Download size={16} /> Download
                 </a>
               </div>
@@ -735,6 +805,159 @@ export default function VoiceStudio() {
           </div>
         </div>
       </div>
+
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4" onClick={() => setShowHelp(false)}>
+          <div
+            className="bg-slate-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] sm:max-h-[80vh] overflow-y-auto border-t sm:border border-slate-700 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-slate-800 p-4 border-b border-slate-700 flex items-center justify-between">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <HelpCircle size={20} className="text-emerald-400" />
+                How to Use Lyre Studio
+              </h2>
+              <button onClick={() => setShowHelp(false)} className="p-1 hover:bg-slate-700 rounded-lg transition">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4 text-sm">
+              <div className="space-y-2">
+                <h3 className="font-medium text-cyan-400 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center text-xs">1</span>
+                  Voice to Clone
+                </h3>
+                <p className="text-slate-400 ml-7">
+                  Record or upload at least 5 seconds of audio with the voice you want to clone.
+                  This should be clear speech in English with minimal background noise.
+                  Longer clips (10+ seconds) produce better results. Clips over 20 seconds may be slow to load.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-medium text-emerald-400 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">2</span>
+                  Content
+                </h3>
+                <p className="text-slate-400 ml-7">
+                  Choose what the cloned voice should say:
+                </p>
+                <ul className="text-slate-400 ml-7 list-disc list-inside space-y-1">
+                  <li><strong>Use Voice:</strong> Speak the same words as the voice sample</li>
+                  <li><strong>Record:</strong> Record different words to be spoken</li>
+                  <li><strong>Type:</strong> Enter text directly</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-medium text-amber-400 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center text-xs">3</span>
+                  Translate (Optional)
+                </h3>
+                <p className="text-slate-400 ml-7">
+                  Choose a target language to translate the content.
+                  The cloned voice will speak in that language while preserving its characteristics.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-medium flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 flex items-center justify-center text-xs text-emerald-400">4</span>
+                  <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Generate</span>
+                </h3>
+                <p className="text-slate-400 ml-7">
+                  Click the <strong>Generate</strong> button to create your cloned audio.
+                  This translates and synthesizes the content in the cloned voice.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-medium text-purple-400 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center text-xs">5</span>
+                  Effects (Optional)
+                </h3>
+                <p className="text-slate-400 ml-7">
+                  After generating, apply audio effects like reverb, pitch shift, distortion, and more.
+                  Effects are applied <strong>in real-time</strong> — adjust sliders and hear changes instantly!
+                  Try the presets for quick results.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-medium text-slate-300 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-slate-500/20 flex items-center justify-center text-xs">6</span>
+                  Download
+                </h3>
+                <p className="text-slate-400 ml-7">
+                  Once you're happy with the result, click <strong>Download</strong> to save your audio file.
+                  The downloaded file includes any effects you've applied.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function AccessDenied() {
+  const { user, logout, authError } = useAuth();
+
+  return (
+    <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="bg-slate-800/50 p-8 rounded-2xl border border-red-500/30 max-w-md w-full text-center space-y-6 backdrop-blur-sm">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+            <X size={32} className="text-red-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-red-400">Access Denied</h1>
+          <p className="text-slate-400">
+            You're signed in as <span className="text-white">{user?.email}</span>, but this account is not authorized to use Lyre Studio.
+          </p>
+          {authError && (
+            <p className="text-sm text-slate-500">Reason: {authError}</p>
+          )}
+        </div>
+
+        <button
+          onClick={logout}
+          className="w-full py-3 px-4 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl flex items-center justify-center gap-2 transition-colors"
+        >
+          <LogOut size={18} />
+          Sign Out
+        </button>
+
+        <div className="text-xs text-slate-500">
+          Contact the administrator to request access.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function VoiceStudio() {
+  const { user, isAuthorized, isLocal } = useAuth();
+
+  if (!user) {
+    return <Login />;
+  }
+
+  // If authenticated but not authorized (and not local dev), show access denied
+  if (!isAuthorized && !isLocal) {
+    return <AccessDenied />;
+  }
+
+  return <VoiceStudioContent />;
+}
+
+// Main wrapper with Auth Provider
+export function App() {
+  return (
+    <AuthProvider>
+      <VoiceStudio />
+    </AuthProvider>
   );
 }

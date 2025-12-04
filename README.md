@@ -2,7 +2,7 @@
 
 <img src="branding/lyre_studio_banner.png" alt="Lyre Studio UI Screenshot" height=200px>
 
-A voice cloning and translation tool using fully local compute. Record or upload a voice sample, then generate new speech in that voice - in any supported language, with optional audio effects. All processing happens locally - no audio is sent to external servers. Works much better with GPU (translation and voice style transfer runs in 10-20 seconds vs minutes w/ CPU)
+A voice cloning and translation tool. Record or upload a voice sample, then generate new speech in that voice - in any supported language, with optional audio effects. Run it locally on your own machine, or deploy to the cloud. Works much better with GPU (translation and voice style transfer runs in 10-20 seconds vs minutes w/ CPU).
 
 ## What It Does
 
@@ -43,6 +43,16 @@ On macOS you may need `export DYLD_LIBRARY_PATH="/opt/homebrew/opt/ffmpeg/lib"` 
 
 May work with older versions of Python, 3.13 is the only one tested.
 
+### Setup
+
+```bash
+# Install backend dependencies
+uv sync
+
+# Install frontend dependencies
+cd src/frontend && bun install && cd ../..
+```
+
 ### Running
 
 ```bash
@@ -55,6 +65,8 @@ May work with older versions of Python, 3.13 is the only one tested.
 
 Open http://localhost:5173 to use Lyre Studio.
 
+First run will take a while as ML models download from Hugging Face (~10GB).
+
 <img src="branding/lyre_studio_page.png" alt="Lyre Studio UI Screenshot">
 
 ## Docker Setup (Alternative)
@@ -64,6 +76,16 @@ Docker is available but has GPU limitations:
 - **Mac (Apple Silicon)**: No MPS support in Docker - runs on CPU only
 - **Windows + NVIDIA**: Works with WSL2 + nvidia-container-toolkit
 
+### Setup
+
+```bash
+# Create .env file with Hugging Face token (required for Docker builds)
+cp env.example .env
+# Edit .env and add your token from https://huggingface.co/settings/tokens
+```
+
+### Running
+
 ```bash
 docker compose up --build
 ```
@@ -71,24 +93,45 @@ docker compose up --build
 - Backend API: http://localhost:8000
 - Frontend UI: http://localhost:5173
 
-Models download on first run and are cached in a Docker volume.
+First build downloads models (~10GB) and takes 15-20 minutes. Subsequent builds are fast (cached).
 
 For NVIDIA GPU support, ensure [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) is installed. The compose file includes GPU configuration.
+
+## Cloud Deployment
+
+Lyre Studio can be deployed to Google Cloud Run with GPU support. See [deploy/DEPLOY.md](deploy/DEPLOY.md) for full instructions.
+
+Features:
+- **L4 GPU** for fast inference (~10-20 seconds per generation)
+- **Firebase Auth** with Google Sign-in
+- **User whitelisting** to control access
+- **Scales to zero** when not in use (pay only when running)
+
+Estimated cost: **~$5-15/month** for light usage.
 
 ## Repository Layout
 
 ```
-src/backend/
+src/backend/              # Python FastAPI backend
   main.py                 # FastAPI entrypoint
   api/                    # Routes, state, schemas, config loader
   voice_services/         # Translation, synthesis, effects processing
   config/                 # YAML configs (languages, effects)
 
-src/frontend/             # Vite + React app (Bun-based dev workflow)
+src/frontend/             # React app (Bun-based)
+  src/auth/               # Firebase auth (Login, AuthContext)
 
-Dockerfile.backend        # UV + FFmpeg backend image
-Dockerfile.frontend       # Bun dev server image
-docker-compose.yml        # Full stack orchestration
+deploy/                   # Cloud deployment (self-contained)
+  deploy.sh               # Deployment script
+  DEPLOY.md               # Setup guide
+  cloudbuild.yaml         # Backend Docker build config
+  firebase.json           # Firebase Hosting config
+  frontend/               # API proxy service code
+    allowed_users.txt     # Email whitelist
+
+Dockerfile.backend        # Backend Docker image (local + cloud)
+Dockerfile.frontend       # Frontend Docker image (local only)
+docker-compose.yml        # Local Docker orchestration
 ```
 
 ## Models Used

@@ -3,12 +3,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
+      args:
+        - HF_TOKEN=${HF_TOKEN}  # Read from .env file
     ports:
-      - "8000:8000"
+      - "8000:8080"  # Host:Container (Dockerfile exposes 8080)
     volumes:
-      - hf-cache:/root/.cache/huggingface
+      - hf-cache:/app/models  # Match HF_HOME in Dockerfile
     environment:
       - PYTHONUNBUFFERED=1
+      - HF_HOME=/app/models
     deploy:
       resources:
         reservations:

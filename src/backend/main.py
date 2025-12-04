@@ -34,9 +34,12 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Lyre Studio API", lifespan=lifespan)
+    
+    # CORS: Use ALLOWED_ORIGINS env var in production, allow localhost for dev
+    allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:8000").split(",")
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=allowed_origins,
         allow_methods=["*"],
         allow_headers=["*"],
     )

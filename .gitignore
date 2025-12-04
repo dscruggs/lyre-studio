@@ -3,6 +3,7 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+allowed_users.txt
 # C extensions
 *.so
 
@@ -215,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Deploy artifacts (built during deploy, cleaned up after)
+deploy/static/
+
+# Firebase
+.firebase/
