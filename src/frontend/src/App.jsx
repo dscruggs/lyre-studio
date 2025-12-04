@@ -3,7 +3,6 @@ import { Mic, Upload, Type, Play, Square, Download, Trash2, Volume2, Activity, S
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import Login from './auth/Login';
 
-// Use backend directly for local dev, relative URL for cloud (proxied)
 const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const API_URL = isLocalDev ? 'http://localhost:8000' : '';
 
@@ -131,7 +130,6 @@ const generateFilename = () => {
   return `lyre_${term}_${timestamp}.wav`;
 };
 
-// Compact waveform for recording
 const LiveWaveform = ({ analyser, isActive }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -176,7 +174,6 @@ const LiveWaveform = ({ analyser, isActive }) => {
   return <div ref={containerRef} className="w-full h-12 rounded bg-slate-800 overflow-hidden"><canvas ref={canvasRef} className="block" /></div>;
 };
 
-// Compact waveform with playback
 const Waveform = ({ audioBlob, audioUrl, currentTime = 0, duration = 0, onSeek }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -274,7 +271,6 @@ const Waveform = ({ audioBlob, audioUrl, currentTime = 0, duration = 0, onSeek }
   );
 };
 
-// Mini audio player
 const AudioPlayer = ({ blob, url, onDelete, label }) => {
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -317,13 +313,11 @@ const AudioPlayer = ({ blob, url, onDelete, label }) => {
   );
 };
 
-// Loading animation with cycling phrases
 const LoadingDisplay = ({ stage, translatedText, translateTo }) => {
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [shuffledPhrases, setShuffledPhrases] = useState([]);
 
   useEffect(() => {
-    // Shuffle phrases on mount
     const shuffled = [...LOADING_PHRASES].sort(() => Math.random() - 0.5);
     setShuffledPhrases(shuffled);
   }, []);
@@ -352,14 +346,12 @@ const LoadingDisplay = ({ stage, translatedText, translateTo }) => {
         </p>
       </div>
 
-      {/* Progress steps */}
       <div className="flex items-center gap-2 mt-4">
         <div className={`w-3 h-3 rounded-full ${stage === 'translating' || stage === 'synthesizing' ? 'bg-emerald-500' : 'bg-slate-600'}`} />
         <div className={`w-8 h-0.5 ${stage === 'synthesizing' ? 'bg-emerald-500' : 'bg-slate-600'}`} />
         <div className={`w-3 h-3 rounded-full ${stage === 'synthesizing' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} />
       </div>
 
-      {/* Show translated text immediately when available */}
       {translatedText && (
         <div className="mt-4 p-3 bg-slate-700/50 rounded-lg max-w-md text-center">
           <span className="text-xs text-emerald-400 block mb-1">
@@ -372,7 +364,6 @@ const LoadingDisplay = ({ stage, translatedText, translateTo }) => {
   );
 };
 
-// Effect card - whole card clickable with protected slider zone
 const EffectCard = ({ id, effect, isActive, params, onToggle, onParamChange }) => {
   const hasParams = Object.keys(effect.params).length > 0;
 
@@ -450,7 +441,6 @@ function VoiceStudioContent() {
   const streamRef = useRef(null);
   const effectsDebounceRef = useRef(null);
 
-  // Helper to fetch with auth token
   const authenticatedFetch = async (url, options = {}) => {
     const headers = { ...options.headers };
     if (token) {
@@ -563,7 +553,7 @@ function VoiceStudioContent() {
         if (res.status === 403) throw new Error('Access denied: User not in whitelist');
         if (!res.ok) throw new Error('Translation failed');
         text = (await res.json()).translated_text;
-        setTranslatedText(text); // Show immediately!
+        setTranslatedText(text);
       }
 
       setCurrentStage('synthesizing');
@@ -959,7 +949,6 @@ export default function VoiceStudio() {
     return <Login />;
   }
 
-  // If authenticated but not authorized (and not local dev), show access denied
   if (!isAuthorized && !isLocal) {
     return <AccessDenied />;
   }
@@ -967,7 +956,6 @@ export default function VoiceStudio() {
   return <VoiceStudioContent />;
 }
 
-// Main wrapper with Auth Provider
 export function App() {
   return (
     <AuthProvider>

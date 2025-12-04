@@ -9,7 +9,6 @@ export function useAuth() {
     return useContext(AuthContext);
 }
 
-// API URL - use backend directly for local dev, relative URL for cloud
 const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const API_URL = isLocalDev ? 'http://localhost:8000' : '';
 
@@ -21,12 +20,10 @@ export function AuthProvider({ children }) {
     const [authChecking, setAuthChecking] = useState(false);
     const [authError, setAuthError] = useState(null);
 
-    // Check if we are running locally
     const isLocal = isLocalDev;
 
     useEffect(() => {
         if (isLocal) {
-            // Local development bypass - auto-authorize
             setUser({
                 uid: 'local-dev-user',
                 email: 'dev@localhost',
@@ -48,7 +45,6 @@ export function AuthProvider({ children }) {
                     const idToken = await currentUser.getIdToken();
                     setToken(idToken);
 
-                    // Check if user is in whitelist
                     const response = await fetch(`${API_URL}/api/auth-check`, {
                         headers: {
                             'Authorization': `Bearer ${idToken}`
@@ -113,7 +109,6 @@ export function AuthProvider({ children }) {
         authError
     };
 
-    // Show loading spinner while initial auth check or authorization check is in progress
     if (loading || authChecking) {
         return (
             <div className="h-screen w-full flex items-center justify-center bg-slate-900 text-emerald-500">

@@ -2,8 +2,6 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
 
-// Firebase configs for each environment
-// Get these from Firebase Console → Project Settings → Your Apps → Web App
 const devConfig = {
     apiKey: "AIzaSyCk6uymR8K1Adxa5x-rrD4mgG2sWn-MJPM",
     authDomain: "lyrestudio-dev.firebaseapp.com",
@@ -15,31 +13,22 @@ const devConfig = {
 };
 
 const prodConfig = {
-    // TODO: Update with lyrestudio Firebase config
-    apiKey: "YOUR_PROD_API_KEY",
+    apiKey: "AIzaSyA_E1VuD5k1vmqI0AhffJOtGxQk9FkRB4A",
     authDomain: "lyrestudio.firebaseapp.com",
     projectId: "lyrestudio",
     storageBucket: "lyrestudio.firebasestorage.app",
-    messagingSenderId: "YOUR_PROD_SENDER_ID",
-    appId: "YOUR_PROD_APP_ID",
-    measurementId: "YOUR_PROD_MEASUREMENT_ID"
+    messagingSenderId: "1001047216358",
+    appId: "1:1001047216358:web:3de7fcd2982242d1c9eb27",
+    measurementId: "G-Q6DE0KLRS2"
 };
 
-// Detect environment based on Firebase Hosting URLs
-// lyrestudio-dev.web.app → dev
-// lyrestudio.web.app → prod
 const hostname = window.location.hostname;
-// Prod if hostname is exactly "lyrestudio.web.app" or "lyrestudio.firebaseapp.com"
-// (not "lyrestudio-dev" which contains "lyrestudio")
 const isProd = hostname === 'lyrestudio.web.app' || hostname === 'lyrestudio.firebaseapp.com';
 const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
 
 const firebaseConfig = isProd ? prodConfig : devConfig;
 
-console.log(`Firebase: Using ${isProd ? 'PROD' : 'DEV'} config (${firebaseConfig.projectId})`);
-
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-const analytics = isLocal ? null : getAnalytics(app); // Skip analytics on localhost
+const analytics = isLocal ? null : getAnalytics(app);
 export const googleProvider = new GoogleAuthProvider();

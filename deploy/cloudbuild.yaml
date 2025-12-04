@@ -1,6 +1,3 @@
-# Cloud Build config for backend service
-# Specifies Dockerfile.backend instead of default Dockerfile
-# Pass HF_TOKEN via: --substitutions=_HF_TOKEN=$HF_TOKEN
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
@@ -16,7 +13,6 @@ images:
   - 'gcr.io/$PROJECT_ID/lyre-backend'
 
 substitutions:
-  _HF_TOKEN: ''  # Default empty, should be passed via --substitutions
+  _HF_TOKEN: ''
 
-# Increase timeout for model downloads (default is 10 min)
 timeout: '3600s'

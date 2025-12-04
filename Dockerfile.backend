@@ -1,6 +1,5 @@
 FROM python:3.13-slim
 
-# Build arg for Hugging Face token (needed to download models)
 ARG HF_TOKEN
 
 ENV PYTHONUNBUFFERED=1 \
@@ -20,10 +19,6 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
-# Download models during build (avoids runtime downloads + rate limits)
-# Models are cached in /app/models (HF_HOME)
-# Note: We patch torch.load to force CPU since Cloud Build has no GPU,
-#       but Chatterbox checkpoints were saved with CUDA tensors
 RUN mkdir -p /app/models && \
     uv run python -c "\
 import torch; \
