@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "dev": "lyrestudio-dev",
+    "prod": "lyrestudio"
+  }
+}

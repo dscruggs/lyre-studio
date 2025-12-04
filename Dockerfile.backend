@@ -1,7 +1,11 @@
 FROM python:3.13-slim
 
+ARG HF_TOKEN
+
 ENV PYTHONUNBUFFERED=1 \
-    PATH="/root/.local/bin:$PATH"
+    PATH="/root/.local/bin:$PATH" \
+    HF_HOME=/app/models \
+    HF_TOKEN=${HF_TOKEN}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -15,8 +19,23 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
+RUN mkdir -p /app/models && \
+    uv run python -c "\
+import torch; \
+_orig_load = torch.load; \
+torch.load = lambda *a, **kw: _orig_load(*a, map_location='cpu', **{k:v for k,v in kw.items() if k != 'map_location'}); \
+from transformers import AutoProcessor, SeamlessM4Tv2ForSpeechToText; \
+print('Downloading SeamlessM4T...'); \
+AutoProcessor.from_pretrained('facebook/seamless-m4t-v2-large'); \
+SeamlessM4Tv2ForSpeechToText.from_pretrained('facebook/seamless-m4t-v2-large'); \
+print('SeamlessM4T downloaded.'); \
+from chatterbox.mtl_tts import ChatterboxMultilingualTTS; \
+print('Downloading Chatterbox...'); \
+ChatterboxMultilingualTTS.from_pretrained(device='cpu'); \
+print('Chatterbox downloaded.');"
+
 COPY src/backend ./src/backend
 
 WORKDIR /app/src/backend
-EXPOSE 8000
+EXPOSE 8080
 CMD ["uv", "run", "python", "main.py"]

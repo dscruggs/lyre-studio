@@ -6,5 +6,9 @@ RUN bun install --frozen-lockfile
 
 COPY src/frontend .
 
+# Build the React app
+RUN bun run build
+
 EXPOSE 5173
-CMD ["bun", "run", "dev", "--host", "0.0.0.0"]
+# Serve the built app, binding to all interfaces for Docker
+CMD ["bunx", "serve", "dist", "-l", "tcp://0.0.0.0:5173"]

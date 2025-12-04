@@ -1,0 +1,18 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/lyre-backend'
+      - '-f'
+      - 'Dockerfile.backend'
+      - '--build-arg'
+      - 'HF_TOKEN=$_HF_TOKEN'
+      - '.'
+images:
+  - 'gcr.io/$PROJECT_ID/lyre-backend'
+
+substitutions:
+  _HF_TOKEN: ''
+
+timeout: '3600s'
