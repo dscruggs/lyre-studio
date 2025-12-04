@@ -379,10 +379,10 @@ const EffectCard = ({ id, effect, isActive, params, onToggle, onParamChange }) =
   return (
     <div
       onClick={onToggle}
-      className={`rounded-lg px-2 py-1.5 transition ${isActive ? 'bg-purple-500/30 ring-1 ring-purple-500/50' : 'bg-slate-700/50 hover:bg-slate-700'}`}
+      className={`rounded-lg px-2 py-1.5 transition cursor-pointer ${isActive ? 'bg-purple-500/30 ring-1 ring-purple-500/50' : 'bg-slate-700/50 hover:bg-slate-700'}`}
     >
       <div className="flex items-center justify-between">
-        <span className={`text-sm font-medium ${isActive ? 'text-purple-300' : 'text-slate-400'}`}>{effect.label}</span>
+        <span className={`text-xs font-medium ${isActive ? 'text-purple-300' : 'text-slate-400'}`}>{effect.label}</span>
         {isActive && (
           <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse shadow-lg shadow-purple-500/50" />
         )}
@@ -598,7 +598,7 @@ function VoiceStudioContent() {
           <img src="./lyre_logo.png" alt="Lyre" className="w-8 h-8 lg:w-10 lg:h-10" />
           <div className="flex flex-col">
             <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent leading-tight">Lyre Studio</h1>
-            <span className="text-xs text-slate-500 hidden sm:block">Clone any voice. Speak any language. Have fun with effects!</span>
+            <span className="text-xs text-slate-500">AI-powered voice editor.</span>
           </div>
         </div>
 
@@ -637,7 +637,7 @@ function VoiceStudioContent() {
 
           {/* Mobile mic selector */}
           {audioDevices.length > 0 && (
-            <div className="sm:hidden flex items-center gap-2 bg-slate-800/50 rounded-xl px-3 py-2">
+            <div className="sm:hidden flex items-center gap-2 bg-slate-800/60 rounded-xl px-3 py-2">
               <Mic size={14} className="text-emerald-400 shrink-0" />
               <select value={selectedDevice} onChange={(e) => setSelectedDevice(e.target.value)} className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer flex-1 min-w-0">
                 {audioDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label || 'Default Microphone'}</option>)}
@@ -646,7 +646,7 @@ function VoiceStudioContent() {
           )}
 
           {/* Voice Sample */}
-          <div className="bg-slate-800/50 rounded-xl p-3">
+          <div className="bg-slate-800/60 rounded-xl p-3">
             <div className="flex items-center gap-2 mb-2">
               <User size={14} className="text-cyan-400" />
               <span className="text-sm font-medium">Voice to Clone</span>
@@ -667,7 +667,7 @@ function VoiceStudioContent() {
           </div>
 
           {/* Content */}
-          <div className="bg-slate-800/50 rounded-xl p-3">
+          <div className="bg-slate-800/60 rounded-xl p-3">
             <div className="flex items-center gap-2 mb-2">
               <Type size={14} className="text-emerald-400" />
               <span className="text-sm font-medium">Content</span>
@@ -694,7 +694,7 @@ function VoiceStudioContent() {
           </div>
 
           {/* Language */}
-          <div className="bg-slate-800/50 rounded-xl p-3">
+          <div className="bg-slate-800/60 rounded-xl p-3">
             <div className="flex items-center gap-2 mb-2">
               <Globe size={14} className="text-amber-400" />
               <span className="text-sm font-medium">Translate to</span>
@@ -737,13 +737,12 @@ function VoiceStudioContent() {
         </div>
 
         {/* Right: Output & Effects */}
-        <div className="flex-1 flex flex-col bg-slate-800/30 rounded-xl p-3 lg:p-4 min-w-0">
-          {/* Effects section - always visible */}
-          <div className="shrink-0 mb-3">
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <Sparkles size={14} className="text-purple-400" />
-              <span className="text-sm font-medium">Effects</span>
-              {effectCount > 0 && <span className="text-xs text-purple-400 bg-purple-500/20 px-1.5 rounded">{effectCount}</span>}
+        <div className="flex-1 flex flex-col gap-2 min-w-0 overflow-y-auto relative pb-14">
+          {/* Output area - fixed height, centered content */}
+          <div className="bg-slate-800/60 rounded-xl p-4 min-h-48 lg:min-h-64 flex flex-col">
+            <div className="flex items-center gap-2 mb-2">
+              <Volume2 size={14} className="text-slate-400" />
+              <span className="text-sm font-medium">Output</span>
               {isApplyingEffects && <Loader2 size={12} className="animate-spin text-purple-400" />}
               {rawAudioBlob && !isApplyingEffects && effectCount > 0 && (
                 <span className="text-xs text-emerald-400/70 flex items-center gap-1">
@@ -751,6 +750,41 @@ function VoiceStudioContent() {
                   Live
                 </span>
               )}
+            </div>
+
+            <div className="flex-1 flex flex-col justify-center">
+              {error && <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/20 text-red-400 text-sm"><X size={14} className="inline mr-1" /> {error}</div>}
+
+              {isProcessing && (
+                <LoadingDisplay stage={currentStage} translatedText={translatedText} translateTo={translateTo} />
+              )}
+
+              {!isProcessing && !outputAudioUrl && currentStage === 'idle' && (
+                <div className="text-center text-slate-500">
+                  <p className="text-sm">Your generated audio will appear here</p>
+                </div>
+              )}
+
+              {!isProcessing && outputAudioUrl && (
+                <div className="space-y-3">
+                  {translatedText && (
+                    <div className="p-2 bg-slate-700/40 rounded-lg">
+                      <span className="text-xs text-emerald-400 block mb-1">✓ {translateTo ? `Translated to ${translateTo}` : 'Transcribed'}</span>
+                      <p className="text-sm text-slate-300">"{translatedText}"</p>
+                    </div>
+                  )}
+                  <AudioPlayer url={outputAudioUrl} label="Output" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Effects section - expands downward */}
+          <div className="bg-slate-800/60 rounded-xl p-3">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <Sparkles size={14} className="text-purple-400" />
+              <span className="text-sm font-medium">Effects</span>
+              {effectCount > 0 && <span className="text-xs text-purple-400 bg-purple-500/20 px-1.5 rounded">{effectCount}</span>}
               <div className="flex-1" />
               {effectCount > 0 && (
                 <button onClick={clearEffects} className="px-2 py-1 text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-md flex items-center gap-1 transition">
@@ -766,43 +800,23 @@ function VoiceStudioContent() {
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5">
               {Object.entries(EFFECTS).map(([id, fx]) => (
                 <EffectCard key={id} id={id} effect={fx} isActive={!!activeEffects[id]} params={activeEffects[id] || {}} onToggle={() => toggleEffect(id)} onParamChange={(p, v) => updateParam(id, p, v)} />
               ))}
             </div>
           </div>
 
-          {/* Output area */}
-          <div className="flex-1 flex flex-col justify-center min-h-0">
-            {error && <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/20 text-red-400 text-sm mb-3"><X size={14} className="inline mr-1" /> {error}</div>}
-
-            {isProcessing && (
-              <LoadingDisplay stage={currentStage} translatedText={translatedText} translateTo={translateTo} />
-            )}
-
-            {!isProcessing && !outputAudioUrl && currentStage === 'idle' && (
-              <div className="text-center text-slate-500">
-                <Volume2 size={48} className="mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Your generated audio will appear here</p>
-              </div>
-            )}
-
-            {!isProcessing && outputAudioUrl && (
-              <div className="space-y-3">
-                {translatedText && (
-                  <div className="p-3 bg-slate-700/30 rounded-lg">
-                    <span className="text-xs text-emerald-400 block mb-1">✓ {translateTo ? `Translated to ${translateTo}` : 'Transcribed'}</span>
-                    <p className="text-sm text-slate-300">"{translatedText}"</p>
-                  </div>
-                )}
-                <AudioPlayer url={outputAudioUrl} label="Output" />
-                <a href={outputAudioUrl} download={generateFilename()} className="flex items-center justify-center gap-2 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition text-sm">
-                  <Download size={16} /> Download
-                </a>
-              </div>
-            )}
-          </div>
+          {/* Download button - bottom right on all screens */}
+          {outputAudioUrl && !isProcessing && (
+            <a
+              href={outputAudioUrl}
+              download={generateFilename()}
+              className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-white text-slate-800 rounded-lg transition text-sm font-medium shadow-lg z-10"
+            >
+              <Download size={14} /> Download
+            </a>
+          )}
         </div>
       </div>
 

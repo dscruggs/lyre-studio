@@ -5,7 +5,7 @@ import { getAnalytics } from 'firebase/analytics';
 // Firebase configs for each environment
 // Get these from Firebase Console → Project Settings → Your Apps → Web App
 const devConfig = {
-    apiKey: "AIzaSyD1s0XjN0sSak6xKzlBXPk6WrWCquDXZYI",
+    apiKey: "AIzaSyCk6uymR8K1Adxa5x-rrD4mgG2sWn-MJPM",
     authDomain: "lyrestudio-dev.firebaseapp.com",
     projectId: "lyrestudio-dev",
     storageBucket: "lyrestudio-dev.firebasestorage.app",

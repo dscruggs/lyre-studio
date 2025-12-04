@@ -18,6 +18,7 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
     const [token, setToken] = useState(null);
     const [isAuthorized, setIsAuthorized] = useState(false);
+    const [authChecking, setAuthChecking] = useState(false);
     const [authError, setAuthError] = useState(null);
 
     // Check if we are running locally
@@ -42,6 +43,7 @@ export function AuthProvider({ children }) {
             setAuthError(null);
 
             if (currentUser) {
+                setAuthChecking(true);
                 try {
                     const idToken = await currentUser.getIdToken();
                     setToken(idToken);
@@ -66,6 +68,7 @@ export function AuthProvider({ children }) {
                     setIsAuthorized(false);
                     setAuthError('Failed to verify authorization');
                 }
+                setAuthChecking(false);
             } else {
                 setToken(null);
                 setIsAuthorized(false);
@@ -106,10 +109,12 @@ export function AuthProvider({ children }) {
         logout,
         isLocal,
         isAuthorized,
+        authChecking,
         authError
     };
 
-    if (loading) {
+    // Show loading spinner while initial auth check or authorization check is in progress
+    if (loading || authChecking) {
         return (
             <div className="h-screen w-full flex items-center justify-center bg-slate-900 text-emerald-500">
                 <Loader2 className="w-8 h-8 animate-spin" />
