@@ -12,6 +12,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - HF_HOME=/app/models
+      - PORT=8080
     deploy:
       resources:
         reservations:
