@@ -4,6 +4,8 @@
 
 A voice cloning and translation tool. Record or upload a voice sample, then generate new speech in that voice - in any supported language, with optional audio effects. Run it locally on your own machine, or deploy to the cloud. Works much better with GPU (translation and voice style transfer runs in 10-20 seconds vs minutes w/ CPU).
 
+Demo: https://www.youtube.com/watch?v=eeDZg_ElO1c
+
 ## What It Does
 
 1. **Voice Upload** - Capture your own or someone else's voice from a ~5-10+ second audio clip (in English)
