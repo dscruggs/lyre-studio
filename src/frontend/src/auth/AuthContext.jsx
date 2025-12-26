@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
 import { Loader2 } from 'lucide-react';
+import { useBackendStatus } from '../hooks/useBackendStatus';
 
 const AuthContext = createContext();
 
@@ -21,6 +22,13 @@ export function AuthProvider({ children }) {
     const [authError, setAuthError] = useState(null);
 
     const isLocal = isLocalDev;
+
+    // Backend status tracking - starts when user is authorized
+    const { backendStatus, retryWarmup } = useBackendStatus(
+        API_URL,
+        token,
+        isAuthorized // Start polling when authorized
+    );
 
     useEffect(() => {
         if (isLocal) {
@@ -106,7 +114,9 @@ export function AuthProvider({ children }) {
         isLocal,
         isAuthorized,
         authChecking,
-        authError
+        authError,
+        backendStatus,
+        retryWarmup,
     };
 
     if (loading || authChecking) {

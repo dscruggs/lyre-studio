@@ -58,17 +58,18 @@ class AppState:
         
         logger.info(f"Loading models on {DEVICE} (dtype={dtype})")
 
-        # Load SeamlessM4T with fp16 if on GPU
+        # Load SeamlessM4T with low_cpu_mem_usage for faster loading
         self.seamless_processor = AutoProcessor.from_pretrained("facebook/seamless-m4t-v2-large")
         self.seamless_model = SeamlessM4Tv2ForSpeechToText.from_pretrained(
             "facebook/seamless-m4t-v2-large",
-            dtype=dtype
+            torch_dtype=dtype,
+            low_cpu_mem_usage=True,
         ).to(DEVICE)
         
         logger.info("SeamlessM4T loaded")
         _log_memory()
 
-        # Load Chatterbox then convert to fp16 if on GPU
+        # Load Chatterbox
         self.chatterbox = ChatterboxMultilingualTTS.from_pretrained(device=DEVICE)
         self.chatterbox.t3.tfmr.config._attn_implementation = "eager"
         

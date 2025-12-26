@@ -408,10 +408,83 @@ const EffectCard = ({ id, effect, isActive, params, onToggle, onParamChange }) =
   );
 };
 
+const BackendStatusIndicator = ({ status, onRetry }) => {
+  const [showReady, setShowReady] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
+
+  useEffect(() => {
+    if (status === 'ready') {
+      setShowReady(true);
+      setFadeOut(false);
+      const fadeTimer = setTimeout(() => setFadeOut(true), 2000);
+      const hideTimer = setTimeout(() => setShowReady(false), 3000);
+      return () => {
+        clearTimeout(fadeTimer);
+        clearTimeout(hideTimer);
+      };
+    }
+  }, [status]);
+
+  // Don't show anything when idle or after ready fades out
+  if (status === 'idle' || (status === 'ready' && !showReady)) {
+    return null;
+  }
+
+  if (status === 'ready' && showReady) {
+    return (
+      <div className={`flex items-center gap-2 px-3 py-1.5 bg-emerald-500/20 rounded-lg transition-opacity duration-1000 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
+        <div className="w-2 h-2 rounded-full bg-emerald-400" />
+        <span className="text-xs text-emerald-400">Ready!</span>
+      </div>
+    );
+  }
+
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 rounded-lg">
+        <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+        <span className="text-xs text-amber-400">AI system starting up...</span>
+      </div>
+    );
+  }
+
+  if (status === 'timeout') {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 rounded-lg">
+        <div className="w-2 h-2 rounded-full bg-red-400" />
+        <span className="text-xs text-red-400">Taking longer than expected</span>
+        <button
+          onClick={onRetry}
+          className="text-xs text-red-300 hover:text-red-200 underline ml-1"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 rounded-lg">
+        <div className="w-2 h-2 rounded-full bg-red-400" />
+        <span className="text-xs text-red-400">Connection issue</span>
+        <button
+          onClick={onRetry}
+          className="text-xs text-red-300 hover:text-red-200 underline ml-1"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  return null;
+};
+
 function VoiceStudioContent() {
   const [audioDevices, setAudioDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState('');
-  const { user, token, logout, isLocal } = useAuth();
+  const { user, token, logout, isLocal, backendStatus, retryWarmup } = useAuth();
 
   const [voiceBlob, setVoiceBlob] = useState(null);
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
@@ -593,6 +666,9 @@ function VoiceStudioContent() {
         </div>
 
         <div className="flex items-center gap-2 lg:gap-3">
+          {/* Backend status indicator */}
+          <BackendStatusIndicator status={backendStatus} onRetry={retryWarmup} />
+
           {audioDevices.length > 0 && (
             <div className="hidden sm:flex items-center gap-2 bg-slate-800/50 rounded-lg px-3 py-1.5">
               <Mic size={14} className="text-emerald-400" />
@@ -720,10 +796,29 @@ function VoiceStudioContent() {
           </div>
 
           {/* Generate */}
-          <button onClick={generate} disabled={!canGenerate || isProcessing} className="py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 font-medium flex items-center justify-center gap-2 disabled:opacity-40 transition hover:opacity-90 shrink-0">
-            {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <Play size={18} />}
-            {isProcessing ? 'Processing...' : 'Generate'}
-          </button>
+          <div className="relative group shrink-0">
+            <button
+              onClick={generate}
+              disabled={!canGenerate || isProcessing || backendStatus !== 'ready'}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 font-medium flex items-center justify-center gap-2 disabled:opacity-40 transition hover:opacity-90"
+            >
+              {isProcessing ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : backendStatus !== 'ready' ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Play size={18} />
+              )}
+              {isProcessing ? 'Processing...' : backendStatus !== 'ready' ? 'Starting up...' : 'Generate'}
+            </button>
+            {/* Tooltip for disabled state due to backend */}
+            {backendStatus !== 'ready' && !isProcessing && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-700 text-xs text-slate-300 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                AI system starting up (~3-5 min)
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-700" />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right: Output & Effects */}

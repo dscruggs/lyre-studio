@@ -27,6 +27,15 @@ def cleanup_file(path: str):
         os.unlink(path)
 
 
+@router.get("/status")
+def get_status():
+    """Return backend readiness status for cold start detection."""
+    state = get_state()
+    if state.seamless_model and state.chatterbox:
+        return {"status": "ready"}
+    return {"status": "loading"}
+
+
 @router.get("/effects")
 def get_effects():
     """Return available effects and their parameters."""
