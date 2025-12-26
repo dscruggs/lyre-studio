@@ -74,11 +74,12 @@ deploy_backend() {
     
     # Allow requests from Firebase Hosting URL
     ALLOWED_ORIGINS="${HOSTING_URL}"
-    IMAGE_URL="gcr.io/${PROJECT_ID}/${BACKEND_SERVICE}"
+    IMAGE_URL="gcr.io/${PROJECT_ID}/${BACKEND_SERVICE}:latest"
     
     # Build the container image using cloudbuild.yaml (specifies Dockerfile.backend)
     # Pass HF_TOKEN for model downloads during build
-    echo "Building backend container image (this may take 15-20 min first time)..."
+    # Uses --cache-from for faster rebuilds when only code changes
+    echo "Building backend container image (first build ~20 min, subsequent ~3-5 min with cache)..."
     gcloud builds submit --config deploy/cloudbuild.yaml --substitutions=_HF_TOKEN="$HF_TOKEN" .
     
     # Deploy the built image to Cloud Run
@@ -90,6 +91,7 @@ deploy_backend() {
         --gpu-type nvidia-l4 \
         --memory 16Gi \
         --cpu 4 \
+        --cpu-boost \
         --concurrency 1 \
         --max-instances 1 \
         --no-gpu-zonal-redundancy \
